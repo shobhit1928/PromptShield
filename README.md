@@ -40,36 +40,6 @@ The two signals are combined into a 0–100 **heuristic risk score**. The score 
 
 ---
 
-## Architecture
-
-```mermaid
-graph TD
-    User["👤 User / Browser"]
-    FE["React Frontend\n(Vite · TypeScript)"]
-    API["FastAPI Backend\n(Python 3.11+)"]
-    RBD["Rule-Based Detector\n(14 rules · 7 categories)"]
-    ML["ML Classifier\n(TF-IDF + LogReg)"]
-    SVC["Analysis Service\n(score orchestration)"]
-    DATA["Starter Dataset\n(data/starter_dataset.csv)"]
-    ARTS["Model Artifacts\n(backend/models/)"]
-
-    User -->|HTTP| FE
-    FE -->|/api/analyze\n/api/batch-analyze\n/api/rules\n/api/model-info| API
-    API --> SVC
-    SVC --> RBD
-    SVC --> ML
-    ML -->|loads| ARTS
-    ARTS -->|trained by| DATA
-```
-
-**Request flow:**
-1. User submits text in the frontend.
-2. Frontend `POST /api/analyze` → FastAPI validates input (max 10,000 chars).
-3. Rule-based detector applies 14 compiled regex rules.
-4. ML classifier (if available) runs TF-IDF + softmax prediction.
-5. Analysis service combines evidence into a risk score + structured result.
-6. JSON response rendered in the dashboard.
-
 **Key design decisions:**
 - Rule matches and ML predictions are **reported separately** — the user can see which contributed.
 - The `score_disclaimer` field is always present in every API response.
